@@ -43,30 +43,30 @@ library(sp)
 library(RStoolbox)
 ```
 
-PART 1 : Introduction to R and working with satellite images as raster files
+PART 1 : Introduction to R and working with satellite images as raster files.
 Practical based on notes by Wageningen UR 
 https://geoscripting-wur.github.io/IntroToRaster/
 A raster is a matrix of pixels organised into columns and rows (a grid) where each cell contains a value that represents information. 
-Satellite images and aerial photographs come in raster format 
-Generate a RasterLayer object, which we will label 'r'. A RasterLayer is single layer raster as a variable 
+Satellite images and aerial photographs come in raster format. 
+Generate a RasterLayer object, which we will label 'r'. A RasterLayer is single layer raster as a variable. 
 
 ```{r }
 r <- raster(ncol=40, nrow=20)
 class(r) 
 ```
-Simply typing the object name displays its general properties / metadata
+Simply typing the object name displays its general properties / metadata.
 
 ```{r }
 r
 ```
-Now we will build on our RasterLayer object, 'r'
-Let's first put some values in the cells of the raster layer
+Now we will build on our RasterLayer object, 'r'.
+Let's first put some values in the cells of the raster layer.
 
 ```{r }
 r[] <- rnorm(n=ncell(r))
 ```
-A RasterStack is equivalent to  to multi-layer RasterLayer objects (like 'r') 
-Create a RasterStack object with 3 layers, called 's' 
+A RasterStack is equivalent to  to multi-layer RasterLayer objects (like 'r'). 
+Create a RasterStack object with 3 layers, called 's'. 
 
 ```{r }
 s <- stack(x=c(r, r*2, r))
@@ -94,29 +94,29 @@ b
 ## min values  : -3.280378, -6.560757, -3.280378 
 ## max values  :  2.602317,  5.204634,  2.602317
 ```
-Download required data
-We will be downloading a raster image, called gewata, which is saved as a TIF (Tagged Image Format) file 
+Download required data.
+We will be downloading a raster image, called gewata, which is saved as a TIF (Tagged Image Format) file. 
 
 ```{r }
 download.file(url = 'https://raw.githubusercontent.com/GeoScripting-WUR/IntroToRaster/gh-pages/data/gewata.zip', 
 destfile = 'gewata.zip', method = 'auto')
 ```
-Unzip the file
+Unzip the file.
 
 ```{r }
 unzip('gewata.zip')
 ```
-To check the file downloaded successfully, you can list all the .tif files in the current directory 
+To check the file downloaded successfully, you can list all the .tif files in the current directory. 
 
 ```{r }
 list.files (pattern =".tif")
 ```
-Load the .tif file into R using the brick function 
+Load the .tif file into R using the brick function. 
 
 ```{r }
 gewata <- brick('LE71700552001036SGS00_SR_Gewata_INT1U.tif')
 ```
-Display the properties of the gewata RasterBrick 
+Display the properties of the gewata RasterBrick. 
 
 ```{r }
 gewata
@@ -133,7 +133,7 @@ gewata
 ## min values  :                     4,                     6,                     3,                    18,                     6,                     2 
 ## max values  :                    39,                    56,                    71,                   102,                   138,                   408
 ```
-The metadata tells us this object is 593 by 653 pixels in size and has 6 layers
+The metadata tells us this object is 593 by 653 pixels in size and has 6 layers.
 Plot the first layer of the RasterBrick to see the image. Then manually draw a regular extent, 'e' which we will later use to crop gewata. 
 
 ```{r }
@@ -142,73 +142,60 @@ e <- drawExtent(show=TRUE)
 ```
 ![plot of chunk unnamed-chunk-17](figure/unnamed-chunk-17-1.png)
 
-Create a regular extent, called 'e', to use to crop the gewata RasterBrick 
+Create a regular extent, called 'e', to use to crop the gewata RasterBrick. 
 
 ```{r }
 plot(gewata, 1)
 e <- drawExtent(show=TRUE)
 ```
 On the image, click twice, for the two opposite corners of the rectangle. 
-
 Crop gewata using e
 
 ```{r }
 gewataSub <- crop(gewata, e)
 ```
-Now visualise the new cropped object by plotting it
+Now visualise the new cropped object by plotting it.
 
 ```{r }
 plot(gewataSub, 1)
 ```
 
-In the next section we will create a NDVI object with multiple layers, using Landsat images taken on different dates. Each layer will correspond to a different date 
-Download and unzip the file called 'tura'
+In the next section we will create a NDVI object with multiple layers, using Landsat images taken on different dates. Each layer will correspond to a different date. 
+Download and unzip the file called 'tura'.
 
 ```{r }
 download.file(url='https://raw.githubusercontent.com/GeoScripting-WUR/IntroToRaster/gh-pages/data/tura.zip', destfile='tura.zip', method='auto')
 unzip(zipfile='tura.zip')
 ```
-Retrieve the content of the tura sub-directory. Create an object called 'list'  
-'List' will contain the file names of all the single layers we can put into the stack to create the NDVI object 
+Retrieve the content of the tura sub-directory. Create an object called 'list'.  
+'List' will contain the file names of all the single layers we can put into the stack to create the NDVI object. 
 
 ```{r }
 list <- list.files(path='tura/', full.names=TRUE)
 ```
-Plot the first layer. This will give us an NDVI layer with the clouds masked out 
+Plot the first layer. This will give us an NDVI layer with the clouds masked out. 
 
 ```{r }
 plot(raster(list[1]))
 ```
 ![plot of chunk unnamed-chunk-23](figure/unnamed-chunk-23-1.png)
 
-Stack all the layers in an object called turaStack 
+Stack all the layers in an object called turaStack. 
 
 ```{r }
 turaStack <- stack(list)
 turaStack
 ```
-
-```
-## class       : RasterStack 
-## dimensions  : 148, 143, 21164, 166  (nrow, ncol, ncell, nlayers)
-## resolution  : 30, 30  (x, y)
-## extent      : 819105, 823395, 827745, 832185  (xmin, xmax, ymin, ymax)
-## coord. ref. : +proj=utm +zone=36 +ellps=WGS84 +units=m +no_defs 
-## names       : LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, LE7170055//dvi_cldmsk, ... 
-## min values  :                  5538,                  4970,                  2996,                  4605,                  3520,                  3237,                  4258,                  4777,                  3648,                  5077,                  4290,                  3724,                     ?,                  5414,                  3333, ... 
-## max values  :                  9513,                  9310,                  8914,                  8744,                  9528,                  8371,                  9178,                  9168,                  9241,                  9139,                  8591,                  8249,                     ?,                  9229,                  9363, ...
-```
-
-To store this object, turaStack, on your computer for later use write this file at the root of the working directory 
-We will save it as a .grd file, which is a standard format for raster files in R  
+To store this object, turaStack, on your computer for later use write this file at the root of the working directory. 
+We will save it as a .grd file, which is a standard format for raster files in R.  
 
 ```{r }
 writeRaster(x=turaStack, filename='turaStack.grd', datatype='INT2S')
 ```
 
-Raster arithmetic can be performed is RasterLayers are identical in terms of extent, resolution, projection etc 
-Calculate the NDVI based on the gewata RasterBrick object we created earlier using arithmetic 
-NDVI = (NIR - Red) / (NIR + Red), with NIR being band 4 and Red being band 3 of Landsat 7 images 
+Raster arithmetic can be performed is RasterLayers are identical in terms of extent, resolution, projection etc. 
+Calculate the NDVI based on the gewata RasterBrick object we created earlier using arithmetic. 
+NDVI = (NIR - Red) / (NIR + Red), with NIR being band 4 and Red being band 3 of Landsat 7 images. 
 
 ```{r }
 ndvi <- (gewata[[4]] - gewata[[3]]) / (gewata[[4]] + gewata[[3]])
@@ -232,7 +219,7 @@ ndvCalc <- function(x) {
 }
 ndvi2 <- calc(x=gewata, fun=ndvCalc)
 ```
-Plot ndvi2. This will produce the same result as the plot of ndvi  
+Plot ndvi2. This will produce the same result as the plot of ndvi.  
 
 ```{r }
 plot(ndvi2)
@@ -248,9 +235,9 @@ ndvOver <- function(x, y) {
 }
 ndvi3 <- overlay(x=gewata[[3]], y=gewata[[4]], fun=ndvOver)
 ```
-We currently don't know where this area we are plotting is on a map. To investigate this, we can project it in Google earth by using latitute and longitude 
-Obtain the latitude and longitude of our NDVI layer
-One single line is sufficient to project any raster to any projection
+We currently don't know where this area we are plotting is on a map. To investigate this, we can project it in Google earth by using latitute and longitude. 
+Obtain the latitude and longitude of our NDVI layer.
+One single line is sufficient to project any raster to any projection.
 
 ```{r }
 ndviLL <- projectRaster(ndvi, crs='+proj=longlat')
@@ -263,64 +250,44 @@ getwd()
 ```
 It can be changed using setwd()
 
-Save the latitude and longitude of the NDVI layer to a .kml file, because this file type is a Google earth format 
+Save the latitude and longitude of the NDVI layer to a .kml file, because this file type is a Google earth format. 
 
 ```{r }
 KML(x=ndviLL, filename='gewataNDVI.kml')
 ```
-Once you have saved the file, if you navigate to the file on your computer and double click, it will open in Google Earth and show you where this area appears on a map 
+Once you have saved the file, if you navigate to the file on your computer and double click, it will open in Google Earth and show you where this area appears on a map. 
 
-Using cloud masks in R 
-A cloud mask is an extra raster layer, that contains information about presence or absence of cloud and shaowing effects from clouds 
-cfmask is the cloud mask of Landsat surface reflectance product
-In this example,  we will use the cfmask layer to mask remaining clouds out of a Landsat image of Tahiti, French Polynesia 
-Download the data and unzip the file
+## Using cloud masks in R ##
+A cloud mask is an extra raster layer, that contains information about presence or absence of cloud and shaowing effects from clouds. 
+cfmask is the cloud mask of Landsat surface reflectance product.
+In this example,  we will use the cfmask layer to mask remaining clouds out of a Landsat image of Tahiti, French Polynesia. 
+Download the data and unzip the file.
 
 
 ```{r }
 download.file(url='https://raw.githubusercontent.com/GeoScripting-WUR/IntroToRaster/gh-pages/data/tahiti.zip', destfile='tahiti.zip', method='auto')
 unzip(zipfile='tahiti.zip')
 ```
-Load the data as a RasterBrick object called 'Tahiti' and look at its metadata
+Load the data as a RasterBrick object called 'Tahiti' and look at its metadata.
 
 ```{r }
 tahiti <- brick('LE70530722000126_sub.grd')
 tahiti
 ```
-```
-## class       : RasterBrick 
-## dimensions  : 1014, 1322, 1340508, 7  (nrow, ncol, ncell, nlayers)
-## resolution  : 30, 30  (x, y)
-## extent      : 224380.7, 264040.7, 8029882, 8060302  (xmin, xmax, ymin, ymax)
-## coord. ref. : +proj=utm +zone=6 +south +ellps=WGS72 +units=m +no_defs 
-## data source : /Users/hollowj/Documents/RA/UN/R/Earth Observation Workshop/LE70530722000126_sub.grd 
-## names       : LE70530722000126_sub_band1, LE70530722000126_sub_band2, LE70530722000126_sub_band3, LE70530722000126_sub_band4, LE70530722000126_sub_band5, LE70530722000126_sub_band7, LE7053072//sub_cfmask 
-## min values  :                          0,                          0,                          0,                          0,                          0,                          0,                     0 
-## max values  :                      16000,                      16000,                      16000,                      16000,                      16000,                      16000,                     4
-```
-
 The metadata tells us the Tahiti RasterBrick is 1014 by 1322 pixels and has 7 layers 
 Display names of each individual layer
 
 ```{r }
 names(tahiti)
 ```
-```
-## [1] "LE70530722000126_sub_band1"  "LE70530722000126_sub_band2" 
-## [3] "LE70530722000126_sub_band3"  "LE70530722000126_sub_band4" 
-## [5] "LE70530722000126_sub_band5"  "LE70530722000126_sub_band7" 
-## [7] "LE70530722000126_sub_cfmask"
-```
-
-Visualize the data
+Visualise the data by plotting layers 3, 4 and 5 which correspond to Landsat bands 3, 4, and 5. 
 
 ```{r }
 plotRGB(tahiti, 3,4,5)
 ```
 ![plot of chunk unnamed-chunk-37](figure/unnamed-chunk-37-1.png)
 
-Visualize the cloud mask layer (layer 7)
-
+Visualise the cloud mask layer (layer 7).
 
 ```{r }
 plot(tahiti, 7)
@@ -328,20 +295,20 @@ plot(tahiti, 7)
 
 ![plot of chunk unnamed-chunk-38](figure/unnamed-chunk-38-1.png)
 
-1 = water, 2 = cloud shadow, 3 = snow, 4 = cloud (see https://code.google.com/p/fmask/) 
+In the legend on the right of our plot, 1 = water, 2 = cloud shadow, 3 = snow, 4 = cloud (see https://code.google.com/p/fmask/). 
 We can plot the cloud layer on top of the RGB image of Tahiti. 
-To do this, we need to assign NA values to the 'clear land pixels' so they appear transparent on the overlay plot 
-Extract cloud layer from the brick
+To do this, we need to assign NA values to the 'clear land pixels' so they appear transparent on the overlay plot. 
+Extract cloud layer from the brick.
 
 ```{r }
 cloud <- tahiti[[7]]
 ```
-Replace 'clear land' with 'NA'
+Replace 'clear land' with 'NA'.
 
 ```{r }
 cloud[cloud == 0] <- NA
 ```
-Plot the stack and the cloud mask on top of each other
+Plot the stack and the cloud mask on top of each other.
 
 ```{r }
 plotRGB(tahiti, 3,4,5)
@@ -350,30 +317,27 @@ plot(cloud, add = TRUE, legend = FALSE)
 
 ![plot of chunk unnamed-chunk-41](figure/unnamed-chunk-41-1.png)
 
-It is easier to work on the cloud mask as a separate RasterLayer, so we will extract it 
-Extract cloud mask RasterLayer into an object called 'fmask'
+It is easier to work on the cloud mask as a separate RasterLayer, so we will extract it. 
+Extract cloud mask RasterLayer into an object called 'fmask'.
 
 ```{r }
 fmask <- tahiti[[7]]
 ```
-
-Remove fmask layer from the Landsat stack and call it 'tahiti 6'
-
+Remove fmask layer from the Landsat stack and call it 'tahiti 6'.
 
 ```{r }
 tahiti6 <- dropLayer(tahiti, 7)
 ```
 We will first do the masking using simple vector arithmetic, as if tahiti6 and fmask were simple vectors. 
-Since we are assigning NAs, we want to discard any value of the stack which has a corresponding cloud mask pixel different from 0. This can be done in one line of code below 
-Perform value replacement
-
+Since we are assigning NAs, we want to discard any value of the stack which has a corresponding cloud mask pixel different from 0. This can be done in one line of code below. 
+Perform value replacement.
 
 ```{r }
 tahiti6[fmask != 0] <- NA
 ```
 This approach is only suitable if the objects and values you are working with are very small. 
-This is often not the case with satellite iamgery, so we will use a replacement function instead 
-Define a value replacement function. x corresponds to the RasterBrick and y to the cloud mask 
+This is often not the case with satellite iamgery, so we will use a replacement function instead.
+Define a value replacement function. x corresponds to the RasterBrick and y to the cloud mask. 
 
 
 ```{r }
@@ -382,17 +346,17 @@ cloud2NA <- function(x, y){
   return(x)
 }
 ```
-Let's create a new 6 layered object, called tahiti6_2, since tahiti6 has been masked already
+Let's create a new 6 layered object, called tahiti6_2, since tahiti6 has been masked already.
 
 ```{r }
 tahiti6_2 <- dropLayer(tahiti, 7)
 ```
-Apply the function on the two raster objects using overlay, creating an object called tahitiCloudFree
+Apply the function on the two raster objects using overlay, creating an object called tahitiCloudFree.
 
 ```{r }
 tahitiCloudFree <- overlay(x = tahiti6_2, y = fmask, fun = cloud2NA)
 ```
-Visualize the output
+Visualise the output.
 
 ```{r }
 plotRGB(tahitiCloudFree, 3,4,5)
@@ -400,4 +364,4 @@ plotRGB(tahitiCloudFree, 3,4,5)
 
 ![plot of chunk unnamed-chunk-48](figure/unnamed-chunk-48-1.png)
 
-In this plot the clouds are now gone. If you wanted to extend on this, you could use another image from another date to create a composited image to 'fill in the gaps' 
+In this plot the clouds are now gone. If you wanted to extend on this, you could use another image from another date to create a composited image to 'fill in the gaps'. 

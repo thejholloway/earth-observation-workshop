@@ -1,5 +1,5 @@
 ---
-title: "Workshop: Working with raster data and preparing satellite data for analyses"
+title: "Workshop 1: Working with raster data and preparing satellite data for analyses"
 author: "Jacinta Holloway"
 date: "16 May 2018"
 output: html_document
@@ -10,7 +10,7 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
                       results='hide', warning=FALSE, message=FALSE)
                       
 ```
-Setting up your R session.
+## Setting up your R session.
 Start by making sure that your working directory is properly set.
 If not you can set it using setwd().
 To check your working directory use getwd.
@@ -33,7 +33,7 @@ If the above  packages are not listed please install them using install.packages
 
 ```{r }
 options(repos="https://cran.rstudio.com")
-install.packages(c("caret","raster","sp","RStoolbox"))
+install.packages(c("caret","raster","rgdal", "rgeos","sp","RStoolbox"))
 ```
 
 ```{r }
@@ -46,7 +46,7 @@ library(RStoolbox)
 ```
 
 PART 1 : Introduction to R and working with satellite images as raster files.
-Practical based on notes by Wageningen UR 
+First section on Gewata and Tahiti are based on notes by Wageningen UR 
 https://geoscripting-wur.github.io/IntroToRaster/
 A raster is a matrix of pixels organised into columns and rows (a grid) where each cell contains a value that represents information. 
 Satellite images and aerial photographs come in raster format. 
@@ -73,14 +73,14 @@ Create a RasterStack object with 3 layers, called 's'.
 ```{r }
 s <- stack(x=c(r, r*2, r))
 ```
-The exact same procedure works for creating a RasterBrick, which refers to one multi-layer file or is a multi-layer object 
-Create a RasterBrick object with 3 layers, called 'b' 
+The exact same procedure works for creating a RasterBrick, which refers to one multi-layer file or is a multi-layer object. 
+Create a RasterBrick object with 3 layers, called 'b'. 
 
 ```{r }
 b <- brick(x=c(r, r*2, r))
 ```
 
-Let's look at the properties of the RasterBrick object, 'b' 
+Let's look at the properties of the RasterBrick object, 'b'. 
 
 ```{r }
 b
@@ -113,7 +113,7 @@ Display the properties of the gewata RasterBrick.
 gewata
 ```
 The metadata tells us this object is 593 by 653 pixels in size and has 6 layers.
-Plot the first layer of the RasterBrick to see the image. T
+Plot the first layer of the RasterBrick to see the image. 
 
 ```{r }
 plot(gewata, 1)
@@ -160,10 +160,10 @@ Plot the NDVI
 ```{r }
 plot(ndvi)
 ```
-NDVI takes values between 0 and 1, so the values in the plot are as expected 
-Although doing arithmetic did produce the result we wanted, for larger objects and more data it is better to use functions to perform calculations 
-Create a function to calculate NDVI 
-Define the function to calculate NDVI from 
+NDVI takes values between 0 and 1, so the values in the plot are as expected. 
+Although doing arithmetic did produce the result we wanted, for larger objects and more data it is better to use functions to perform calculations. 
+Create a function to calculate NDVI. 
+Define the function to calculate NDVI from bands 3 and 4. 
 
 ```{r }
 ndvCalc <- function(x) {
@@ -193,8 +193,8 @@ One single line is sufficient to project any raster to any projection.
 ```{r }
 ndviLL <- projectRaster(ndvi, crs='+proj=longlat')
 ```
-Since this function will write a file to your working directory
-You want to make sure that it is set where you want the file to be written, so check your current working directory 
+Since this function will write a file to your working directory.
+You want to make sure that it is set where you want the file to be written, so check your current working directory. 
 
 ```{r }
 getwd()
@@ -207,7 +207,6 @@ Save the latitude and longitude of the NDVI layer to a .kml file, because this f
 KML(x=ndviLL, filename='gewataNDVI.kml')
 ```
 Once you have saved the file, if you navigate to the file on your computer and double click, it will open in Google Earth and show you where this area appears on a map. 
-
 ## Using cloud masks in R ##
 A cloud mask is an extra raster layer, that contains information about presence or absence of cloud and shaowing effects from clouds. 
 cfmask is the cloud mask of Landsat surface reflectance product.
@@ -224,8 +223,8 @@ Load the data as a RasterBrick object called 'Tahiti' and look at its metadata.
 tahiti <- brick('LE70530722000126_sub.grd')
 tahiti
 ```
-The metadata tells us the Tahiti RasterBrick is 1014 by 1322 pixels and has 7 layers 
-Display names of each individual layer
+The metadata tells us the Tahiti RasterBrick is 1014 by 1322 pixels and has 7 layers. 
+Display names of each individual layer.
 
 ```{r }
 names(tahiti)
@@ -235,8 +234,6 @@ Visualise the data by plotting layers 3, 4 and 5 which correspond to Landsat ban
 ```{r }
 plotRGB(tahiti, 3,4,5)
 ```
-
-
 Visualise the cloud mask layer (layer 7).
 
 ```{r }
@@ -283,7 +280,6 @@ This approach is only suitable if the objects and values you are working with ar
 This is often not the case with satellite iamgery, so we will use a replacement function instead.
 Define a value replacement function. x corresponds to the RasterBrick and y to the cloud mask. 
 
-
 ```{r }
 cloud2NA <- function(x, y){
   x[y != 0] <- NA
@@ -305,66 +301,59 @@ Visualise the output.
 ```{r }
 plotRGB(tahitiCloudFree, 3,4,5)
 ```
-In this plot the clouds are now gone. If you wanted to extend on this, you could use another image from another date to create a composited image to 'fill in the gaps'. 
+In this plot the clouds are now gone. If you wanted to extend on this, you could use another image from another date to create a composited image to 'fill in the gaps' (the white sections). 
+
 ## Transforming data from raster format to data frame format
 
 Sometimes to perform statistical analyses it is useful to extract data from satellite images in raster format, which we worked with previously in this workshop, and transform it to data frame format. You can then run analyses on the data which appears in a standard table format.
-In this section we will work through this process of going from a satellite image in a .img format, to a raster, to a data frame, in R. 
+In this section we will work through this process of going from a raster, to a data frame in R. 
 
-This code imports Landsat imagery of Injune in Queensland, Australia into R in raster format and prepares the data for statistical analyses.
-
-Read injune.img file for 16 June 2000 - use the stack function to import multiple layers of the image.
-
-```{r }
-injune2000 <-stack ('data/l7tmre_p093r078_20000716_dbgm5.img')
-```
-Plot and view structure of injune data
+Let's use our cloud masked RasterBrick object we created, tahitiCloudFree.
 
 ```{r, results='hide' }
-injune2000
+tahitiCloudFree
 ```
-Check the features of the Raster Stack object. There are 6 spectral bands in Landsat images, so there should be 6 layers. 
+
+Check the features of the Raster Brick object. There are 6 spectral bands in Landsat images, so there should be 6 layers. 
 The resolution is 30 by 30. This is correct because Landsat images are at 30 by 30m resolution.
-Later in my analysis I will need the Coordinate Reference System (CRS) to extract spatial points from my image. This is produced as 'coord.ref. in the table above.
 
 Visualise the landsat scene using plotRGB - this function makes a Red-Green-Blue plot based on three layers in a RasterBrick or RasterStack
+
 ```{r }
-plotRGB(injune2000, r = 3, g = 2, b = 1, axes = TRUE, stretch = "lin", main = "Landsat True Colour Composite")
+plotRGB(tahitiCloudFree, r = 3, g = 2, b = 1, axes = TRUE, stretch = "lin", main = "Landsat True Colour Composite")
 ```
 We want to extract data from this image to run statistical analyses on a dataset in dataframe format.
-Create a data frame from the injune2000 Raster Stack - it includes the band values from Landsat bands 1-6.
-
+Create a data frame from the tahitiCloudFree Raster Brick - it includes the band values from Landsat bands 1-6.
+We use the na.rm command because we want to remove the NA values. Later we will we will add NDVI to this data frame, which can only be calculated on pixels we have spectral values for, and the two objects need to have the same number of rows to merge.
 ```{r }
-injune.df <-as.data.frame (injune2000) #'including the NA values there are the same number of obs for lonlat.df and injune.df.test
+tahiti.df <-as.data.frame (tahitiCloudFree, na.rm=TRUE) 
 ```
-Check structure of injune.df. It is a data frame. 
+Check structure of tahiti.df. It is a data frame. 
 
 ```{r }
-str(injune.df)
+str(tahiti.df)
 ```
 Add column names for the Landsat bands.
 
 ```{r }
-colnames(injune.df) <-c("Band1", "Band2","Band3", "Band4", "Band5","Band6")
+colnames(tahiti.df) <-c("Band1", "Band2","Band3", "Band4", "Band5","Band6")
 ```
 Check column cames are correctly displayed.
 
 ```{r }
-head(injune.df) 
+head(tahiti.df) 
 ```
-There are a number of NAs but these will be handled later.
-
-Previously we calculated NVDI. Let's calculate NDVI for this Injune image and add this to the injune.df dataframe.
+Previously we calculated NVDI. Let's calculate NDVI for this Injune image and add this to the tahitiCloudFree dataframe.
 Note: Calculating NDVI for the whole landsat image will take some time to run. 
 ```{r }
-NDVI <- calc(x=injune2000, fun=ndvCalc)
+NDVI <- calc(x=tahitiCloudFree, fun=ndvCalc)
 ndvi.df = as.data.frame(NDVI, na.rm = TRUE)
 colnames(ndvi.df) <- "NDVI"
-injune.df1 <- cbind(injune.df, ndvi.df[,1, drop=FALSE])
+tahiti.df1 <- cbind(tahiti.df, ndvi.df[,1, drop=FALSE])
 ```
-Produce a summary of the data frame, injune.df1, to check all the variables are there and look at the range of values.  
+Produce a summary of the data frame, tahitiCloudFree1, to check all the variables are there and look at the range of values.  
 ```{r }
-summary (injune.df1)
+summary (tahiti.df1)
 ```
 ## End of workshop code ## 
 

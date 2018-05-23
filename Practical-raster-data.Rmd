@@ -83,17 +83,6 @@ Let's look at the properties of the RasterBrick object, 'b'
 ```{r }
 b
 ```
-```
-## class       : RasterBrick 
-## dimensions  : 20, 40, 800, 3  (nrow, ncol, ncell, nlayers)
-## resolution  : 9, 9  (x, y)
-## extent      : -180, 180, -90, 90  (xmin, xmax, ymin, ymax)
-## coord. ref. : +proj=longlat +datum=WGS84 +ellps=WGS84 +towgs84=0,0,0 
-## data source : in memory
-## names       :   layer.1,   layer.2,   layer.3 
-## min values  : -3.280378, -6.560757, -3.280378 
-## max values  :  2.602317,  5.204634,  2.602317
-```
 Download required data.
 We will be downloading a raster image, called gewata, which is saved as a TIF (Tagged Image Format) file. 
 
@@ -121,23 +110,11 @@ Display the properties of the gewata RasterBrick.
 ```{r }
 gewata
 ```
-
-```
-## class       : RasterBrick 
-## dimensions  : 593, 653, 387229, 6  (nrow, ncol, ncell, nlayers)
-## resolution  : 30, 30  (x, y)
-## extent      : 829455, 849045, 825405, 843195  (xmin, xmax, ymin, ymax)
-## coord. ref. : +proj=utm +zone=36 +ellps=WGS84 +units=m +no_defs 
-## data source : /Users/hollowj/Documents/RA/UN/R/Earth Observation Workshop/LE71700552001036SGS00_SR_Gewata_INT1U.tif 
-## names       : LE7170055//ta_INT1U.1, LE7170055//ta_INT1U.2, LE7170055//ta_INT1U.3, LE7170055//ta_INT1U.4, LE7170055//ta_INT1U.5, LE7170055//ta_INT1U.6 
-## min values  :                     4,                     6,                     3,                    18,                     6,                     2 
-## max values  :                    39,                    56,                    71,                   102,                   138,                   408
-```
 The metadata tells us this object is 593 by 653 pixels in size and has 6 layers.
 Plot the first layer of the RasterBrick to see the image. Then manually draw a regular extent, 'e' which we will later use to crop gewata. 
 
 ```{r }
-plot(gewata, 1, main = "Plot of gewata raster layer")
+plot(gewata, 1)
 e <- drawExtent(show=TRUE)
 ```
 ![plot of chunk unnamed-chunk-17](figure/unnamed-chunk-17-1.png)

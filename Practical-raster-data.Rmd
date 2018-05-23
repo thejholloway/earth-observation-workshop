@@ -115,15 +115,14 @@ Plot the first layer of the RasterBrick to see the image. Then manually draw a r
 
 ```{r }
 plot(gewata, 1)
+
 e <- drawExtent(show=TRUE)
 ```
-![plot of chunk unnamed-chunk-17](figure/unnamed-chunk-17-1.png)
-
 Create a regular extent, called 'e', to use to crop the gewata RasterBrick. 
 
 ```{r }
 plot(gewata, 1)
-e <- drawExtent(show=TRUE)
+e <- drawExtent(gewata,show=TRUE)
 ```
 On the image, click twice, for the two opposite corners of the rectangle. 
 Crop gewata using e

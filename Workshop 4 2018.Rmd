@@ -1,0 +1,241 @@
+---
+title: "Workshop 4: State Space Model for crop yield"
+author: "Jacinta Holloway"
+date: "23 May 2018"
+output: html_document
+---
+```{r global_options, message=FALSE, results= 'hide', echo= FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+                      results='hide', warning=FALSE, message=FALSE)
+```
+## Setting up your R session 
+Start by making sure that your working directory is properly set - it should be set to the same place your code and data for R script are stored.
+If not you can set it using setwd()
+To check your working directory use getwd.
+getwd()
+
+Install and load required packages. 
+This workshop requires the packages dlm, forecast and tseries.
+You can check which packages you have installed using the installed.packages function. 
+```{r, results='hide', warning=FALSE, eval = FALSE }
+options(repos="https://cran.rstudio.com")
+installed.packages(lib.loc = NULL, priority = NULL,
+                   noCache = FALSE, fields = NULL,
+                   subarch = .Platform$r_arch)
+```
+If the dlm package is not installed, run the following code: 
+
+```{r, eval = FALSE }
+install.packages("dlm")
+library(dlm)
+library(tseries)
+library(forecast)
+```
+## Crop yield State Space Model example - Linear Gaussian Trend Plus Seasonality          
+This example is based on package dlm example (https://cran.r-project.org/web/packages/dlm/vignettes/dlm.pdf)
+We will be working on crop data that is freely available and extracted from the FAO website http://www.fao.org/faostat/en/#data/QC 
+
+Read the crop data from a csv file into R, calling the data yield.data. 
+Change the file path to the location of the csv file on your computer. 
+
+```{r }
+yield.data <-read.csv("/Users/hollowj/Documents/RA/UN/R/Earth Observation Workshop/data/FAOSTAT_data_1-24-2018.csv")
+```
+View the first few rows of the data to see how it looks. Also check the structure.
+```{r }
+head(yield.data)
+str(yield.data)
+```
+Rename the variable 'item' to 'crop'colnames(final.data[10]) <- "Class" 
+```{r }
+colnames(yield.data)[8] <- "Crop"
+head(yield.data)
+```
+Create a plot of the yield value of Maize over time. 
+```{r, warning=FALSE }
+plot(yield.data$Value, type = "o",
+     xlab = "Year",
+     ylab = "Yield value (hg/ha)",
+     main = "Crop yield over time",
+     labels = FALSE)
+axis(1, at=1:37, labels=yield.data$Year[1:37], cex.axis = 0.5)
+```
+
+### Fit an Auto-Regressive Time Series Model (ARMA)
+ARMA models are common in working with time series data. 
+
+Create a subset of the data which only includes the Value variable - this is our crop yield value. 
+Create it as a time series object, starting at year 1980 and ending at 2016. This data range we can find in the yield data.
+```{r }
+yield <-c(yield.data$Value)
+yield.ts<- ts(data = yield, start = c(1980), end=c(2016), deltat =1)
+```
+
+Create a plot of crop yield, using the object yield, and fit an abline. 
+```{r }
+plot(yield.ts, xlab = "Year", ylab = "Yield (hg/ha)", main = "Time series of crop yield")
+abline(reg=lm(yield.ts~time(yield.ts)))
+```
+<div class="alert alert-info">
+  <strong>Task</strong> Interpret the graph. What is happening to yield over time?
+</div>
+ 
+Test the stationarity of the data by removing unequal variances using a log transformation and taking the difference of the series. We will use the Augmented Dickey-Fuller test (adf).
+```{r }
+adf.test(diff(log(yield.ts)), alternative="stationary", k=0)
+```
+The p value = .01 which indicates the series is stationary enough to use time series models. 
+
+Next, fit an ACF plot to the log of the yield data. 
+```{r }
+acf(log(yield.ts))
+```
+There is a downward trend, so the series may not be stationary. A common way to create a possibly stationary series, is to examine the first differences.
+A useful definition, along with some time series analyses guidance in R is available here:https://www.analyticsvidhya.com/blog/2015/12/complete-tutorial-time-series-modeling/
+
+Differencing : This is the commonly used technique to remove non-stationarity. Here we try to model the differences of the terms and not the actual term. For instance,
+x(t) – x(t-1) = ARMA (p ,  q)
+
+This differencing is called as the Integration part in AR(I)MA. Now, we have three parameters
+p : AR
+
+d : I
+
+q : MA
+
+To find the parameters p, d and q we can use ACF plots. The code below plots an ACF of the first order differences for the log of crop yield.
+```{r} 
+acf(diff(log(yield.ts), main = "ACF of first order differences for the log of crop yield"))
+```
+This pattern shows an AR(1) model may be suitable for the first differences of the log of yield. 
+See https://newonlinecourses.science.psu.edu/stat510/node/60/ for more explanation. 
+
+### Fit an ARIMA model and predict the future 2 years (2017 and 2018)
+An ARIMA isan Autoregressive Integrated Moving Averages model.
+Using this type of model, predict log of crop yield in the next two years using the forecast package.  
+```{r }
+fit <- arima(log(yield.ts), order= c(0, 1, 1))
+forecast(fit, 2)
+plot(forecast(fit, 2))
+```
+<div class="alert alert-info">
+  <strong>Task</strong> Add a title to this plot. Choose a different number of years to forecast and write code based on this example to produce these predictions of crop yield.
+</div>
+
+### Fit a structural time series model
+
+Fit a structural Time series model to this data with local linear trend plus quarterly seasonality component. See notes for model details.
+
+Step 1 is to build the model with the built in structures in dlm.
+Default order for dlmModPoly = 2, which represents a stochastic linear trend (mean plus slope).
+
+```{r }
+yield.mod <- dlmModPoly() + dlmModSeas(4) 
+yield.mod
+```
+$FF is the observation equation matrix (column 1 is trend, column 3 is seasonal component)
+
+$V is observation equation error var-covar (needs to be estimated, see below)
+
+$GG is the state transition matrix:
+(5 states: see model details in notes and note "sum to zero" seasonality constraints)
+
+$W is the state equation var-covar matrix 
+(trend level has zero var, slope and seasonality have error - vars need to be estimated, see below)
+$m0 and $C0 are t = 0 starting values for Gaussian states' mean vector and var-covar matrix
+
+Next create a function involving unknown parameters to be estimated using maximum likelihood.
+In this case these parameters are the unknown variances in the model.
+
+```{r }
+estimFun <- function(x) {
+  diag(W(yield.mod))[2:3] <- exp(x[1:2])
+  V(yield.mod) <- exp(x[3])
+  return(yield.mod)
+}
+```
+Note since the parameters are variances, parameterise as exp() for unconstrained optimisation.
+Now we use the function dlmMLE to obtain Maximum Likelihood Estimates (this function uses R's built in 'optim' function)
+
+```{r }
+fit <- dlmMLE(yield.data, parm = rep(0.1, 3), build = estimFun) # parm = rep(0.1,3) are starting vals
+```
+Check convergence. We want this to be zero. 
+
+```{r }
+fit$conv 
+```
+Now add these Maximum Likehlihood Estimates back into the State Space Model specification, yield.mod. Also check the var-covars have been updated. 
+```{r }
+yield.mod <- estimFun(fit$par)
+yield.mod$V; yield.mod$W
+```
+Now we can obtain smoothed estimates of the states using the fitted model, and decompose the series into a smooth trend + stochastic seasonal component (plus error).
+
+The function dlmSmooth uses the Kalman Smoother algorithm to get smoothed values of the states plus var-covar matrices.
+It returns a time series of smoothed state vectors (object$s), plus a SVD representation of the var-cov matrices.
+Note that the smoothed series begins one time unit before the first data observation (t-1), so we need to remove it for graph:
+```{r }
+yield.smooth <- dlmSmooth(yield.data, mod = yield.mod)
+```
+Create graph showing original series decomposed into smoothed trend and seasonal components.
+```{r }
+x <- cbind(yield.data, dropFirst(yield.smooth$s[,c(1,3)])) # note we drop the first row which is t-1 (see above)
+colnames(x) <- c("Yield", "Trend", "Seasonality")
+plot(x, main = "Yield Data: Smoothed Trend and Seasonal Components")
+```
+## Making crop yield predictions
+
+We can also predict future values of the series based on the model.
+Let's forecast 2 years ahead of the series (annually, so that's 2 time steps) to 2018.
+
+dlmFilter uses the Kalman Filter to compute filtered values of the states and var-covar matrices via SVD. 
+Note that the filtered series begins one time unit before the first data observation.
+
+```{r }
+yield.filter <- dlmFilter(yield.data, mod = yield.mod)
+```
+The function dlmForecast calculates the expected value and variances of future observations and states.
+```{r }
+yield.forecast <- dlmForecast(yield.filter, nAhead = 2) # 2 indicates 2 time points (2 years from 2016 to 2018)
+```
+We are going to forecast the deseasonalised series (ie just trend), and we need the trend std.deviations to create prediction intervals. 
+dlmForecast produces a list object of var-covar matrices, R (each element corresponding to the forecast time). 
+We can access the trend standard deviation using the following function.
+```{r }
+std.devs <- sapply(yield.forecast$R, function(x) sqrt(x[1,1])) 
+std.devs
+```
+As we get further into the future making predictions, the standard deviations are getting larger. This is expected because it is difficult to forecast accurately! 
+Just ask the weatherman... 
+
+Create the upper and lower 95% prediction intervals (everything is assumed Gaussian):
+```{r }
+fm <- yield.forecast$a[,1] # forecasted trend means (deseasonalised forecast)
+pu <- fm + qnorm(0.975, sd = std.devs)
+pl <- fm + qnorm(0.025, sd = std.devs)
+```
+Combine original data, it's smoothed (deseasonalised) values, the forecasts, and prediction intervals into a single time series object for plotting. 
+ts.union will pad non-overlapping times with NAs and window selects a subset of a time series between a specified start and end time.
+Start the plot of the original and smoothed series at 1980, the first year:
+```{r }
+x <- ts.union(window(yield.data, start = c(1)),         # Data
+              window(yield.smooth$s[,1], start = c(1)), # Smoothed trend
+              yield.forecast$a[,1],                     # Forecast trend
+              pu, pl)                                   # upper and lower 95% prediction intervals for trend
+
+x
+```
+Now plot on a single graph.
+```{r }
+plot(x, plot.type = "single", type = "o", pch = c(1, 0, 15, 4, 4), 
+     col = c("black", "black", "red", "blue", "blue"),
+     ylab = "Crop Yield")
+legend("bottomleft", legend = c("Observed",
+                                "Smoothed (deseasonalised)",
+                                "Forecasted (deseasonalised)", 
+                                "95% Forecast Interval"),
+       bty = 'n', pch = c(1, 0, 15, 4, 4), lty = 1,
+       col = c("black", "black", "red", "blue", "blue"))
+```
+## End of workshop code ##

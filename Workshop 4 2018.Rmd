@@ -86,7 +86,10 @@ adf.test(diff(log(yield.ts)), alternative="stationary", k=0)
 ```
 The p value = .01 which indicates the series is stationary enough to use time series models. 
 
-Next, fit an ACF plot to the log of the yield data. 
+Next, fit an ACF plot to the log of the yield data. The ACF plots the total correlation between different lag functions. 
+If we have an autoregressive series, then the correlation will gradually decrease. If we have a moving average series, the total correlation in the plot cuts off at the nth lag. 
+
+The code below plots an ACF of the first order differences for the log of crop yield.
 ```{r }
 acf(log(yield.ts))
 ```
@@ -103,7 +106,8 @@ d : I
 
 q : MA
 
-To find the parameters p, d and q we can use ACF plots. The code below plots an ACF of the first order differences for the log of crop yield.
+To find the parameters p, d and q we can use Auto Correlation Function (ACF) plots. 
+The code below plots an ACF of the first order differences for the log of crop yield.
 ```{r} 
 acf(diff(log(yield.ts), main = "ACF of first order differences for the log of crop yield"))
 ```
@@ -111,7 +115,7 @@ This pattern shows an AR(1) model may be suitable for the first differences of t
 See https://newonlinecourses.science.psu.edu/stat510/node/60/ for more explanation. 
 
 ### Fit an ARIMA model and predict the future 2 years (2017 and 2018)
-An ARIMA isan Autoregressive Integrated Moving Averages model.
+An ARIMA is an Auto-Regressive Integrated Moving Averages model.
 Using this type of model, predict log of crop yield in the next two years using the forecast package.  
 ```{r }
 fit <- arima(log(yield.ts), order= c(0, 1, 1))
@@ -119,8 +123,10 @@ forecast(fit, 2)
 plot(forecast(fit, 2))
 ```
 <div class="alert alert-info">
-  <strong>Task</strong> Add a title to this plot. Choose a different number of years to forecast and write code based on this example to produce these predictions of crop yield.
+  <strong>Task</strong> Add a title and labels to this plot. Choose a different number of years to forecast and write code based on this example to produce these predictions of crop yield.
 </div>
+
+##Extension examples: a structural time series model and state space model 
 
 ### Fit a structural time series model
 

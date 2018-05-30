@@ -1,5 +1,5 @@
 ---
-title: "Workshop 4: State Space Model for crop yield"
+title: "Workshop 4: Time series analyses for crop yield"
 author: "Jacinta Holloway"
 date: "23 May 2018"
 output: html_document
@@ -23,16 +23,16 @@ installed.packages(lib.loc = NULL, priority = NULL,
                    noCache = FALSE, fields = NULL,
                    subarch = .Platform$r_arch)
 ```
-If the dlm package is not installed, run the following code: 
+If the dlm, forecast or tseries packages are not installed, run the following code: 
 
-```{r, eval = FALSE }
-install.packages("dlm")
+```{r }
+options(repos="https://cran.rstudio.com")
+install.packages (c("dlm", "forecast", "tseries"))
 library(dlm)
-library(tseries)
 library(forecast)
+library(tseries)
 ```
-## Crop yield State Space Model example - Linear Gaussian Trend Plus Seasonality          
-This example is based on package dlm example (https://cran.r-project.org/web/packages/dlm/vignettes/dlm.pdf)
+
 We will be working on crop data that is freely available and extracted from the FAO website http://www.fao.org/faostat/en/#data/QC 
 
 Read the crop data from a csv file into R, calling the data yield.data. 
@@ -81,8 +81,8 @@ abline(reg=lm(yield.ts~time(yield.ts)))
 </div>
  
 Test the stationarity of the data by removing unequal variances using a log transformation and taking the difference of the series. We will use the Augmented Dickey-Fuller test (adf).
-```{r }
-adf.test(diff(log(yield.ts)), alternative="stationary", k=0)
+```{r, warning=FALSE}
+tseries::adf.test(diff(log(yield.ts)), alternative="stationary", k=0)
 ```
 The p value = .01 which indicates the series is stationary enough to use time series models. 
 
@@ -90,7 +90,7 @@ Next, fit an ACF plot to the log of the yield data. The ACF plots the total corr
 If we have an autoregressive series, then the correlation will gradually decrease. If we have a moving average series, the total correlation in the plot cuts off at the nth lag. 
 
 The code below plots an ACF of the first order differences for the log of crop yield.
-```{r }
+```{r, warning = FALSE }
 acf(log(yield.ts))
 ```
 There is a downward trend, so the series may not be stationary. A common way to create a possibly stationary series, is to examine the first differences.
@@ -118,7 +118,7 @@ See https://newonlinecourses.science.psu.edu/stat510/node/60/ for more explanati
 An ARIMA is an Auto-Regressive Integrated Moving Averages model.
 Using this type of model, predict log of crop yield in the next two years using the forecast package.  
 ```{r }
-fit <- arima(log(yield.ts), order= c(0, 1, 1))
+fit <- arima(log(yield.ts), order= c(1, 0, 0))
 forecast(fit, 2)
 plot(forecast(fit, 2))
 ```
@@ -127,6 +127,9 @@ plot(forecast(fit, 2))
 </div>
 
 ##Extension examples: a structural time series model and state space model 
+
+### Crop yield State Space Model example - Linear Gaussian Trend Plus Seasonality          
+This example is based on package dlm example (https://cran.r-project.org/web/packages/dlm/vignettes/dlm.pdf)
 
 ### Fit a structural time series model
 
@@ -164,7 +167,7 @@ Note since the parameters are variances, parameterise as exp() for unconstrained
 Now we use the function dlmMLE to obtain Maximum Likelihood Estimates (this function uses R's built in 'optim' function)
 
 ```{r }
-fit <- dlmMLE(yield.data, parm = rep(0.1, 3), build = estimFun) # parm = rep(0.1,3) are starting vals
+fit <- dlmMLE(yield.ts, parm = rep(0.1, 3), build = estimFun) # parm = rep(0.1,3) are starting vals
 ```
 Check convergence. We want this to be zero. 
 
@@ -182,11 +185,11 @@ The function dlmSmooth uses the Kalman Smoother algorithm to get smoothed values
 It returns a time series of smoothed state vectors (object$s), plus a SVD representation of the var-cov matrices.
 Note that the smoothed series begins one time unit before the first data observation (t-1), so we need to remove it for graph:
 ```{r }
-yield.smooth <- dlmSmooth(yield.data, mod = yield.mod)
+yield.smooth <- dlmSmooth(yield.ts, mod = yield.mod)
 ```
 Create graph showing original series decomposed into smoothed trend and seasonal components.
 ```{r }
-x <- cbind(yield.data, dropFirst(yield.smooth$s[,c(1,3)])) # note we drop the first row which is t-1 (see above)
+x <- cbind(yield.ts, dropFirst(yield.smooth$s[,c(1,3)])) # note we drop the first row which is t-1 (see above)
 colnames(x) <- c("Yield", "Trend", "Seasonality")
 plot(x, main = "Yield Data: Smoothed Trend and Seasonal Components")
 ```
@@ -199,7 +202,7 @@ dlmFilter uses the Kalman Filter to compute filtered values of the states and va
 Note that the filtered series begins one time unit before the first data observation.
 
 ```{r }
-yield.filter <- dlmFilter(yield.data, mod = yield.mod)
+yield.filter <- dlmFilter(yield.ts, mod = yield.mod)
 ```
 The function dlmForecast calculates the expected value and variances of future observations and states.
 ```{r }
@@ -225,7 +228,7 @@ Combine original data, it's smoothed (deseasonalised) values, the forecasts, and
 ts.union will pad non-overlapping times with NAs and window selects a subset of a time series between a specified start and end time.
 Start the plot of the original and smoothed series at 1980, the first year:
 ```{r }
-x <- ts.union(window(yield.data, start = c(1)),         # Data
+x <- ts.union(window(yield.ts, start = c(1)),         # Data
               window(yield.smooth$s[,1], start = c(1)), # Smoothed trend
               yield.forecast$a[,1],                     # Forecast trend
               pu, pl)                                   # upper and lower 95% prediction intervals for trend

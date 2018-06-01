@@ -10,7 +10,7 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
                       results='hide', warning=FALSE, message=FALSE)
                       
 ```
-## Setting up your R session.
+### Setting up your R session.
 Start by making sure that your working directory is properly set.
 If not you can set it using setwd().
 To check your working directory use getwd.
@@ -44,8 +44,8 @@ library(rgeos)
 library(sp)
 library(RStoolbox)
 ```
+## Introduction to R and working with satellite images as raster files and data frames.
 
-PART 1 : Introduction to R and working with satellite images as raster files.
 First section on Gewata and Tahiti are based on notes by Wageningen UR 
 https://geoscripting-wur.github.io/IntroToRaster/
 A raster is a matrix of pixels organised into columns and rows (a grid) where each cell contains a value that represents information. 
@@ -146,7 +146,7 @@ To store this object, turaStack, on your computer for later use write this file 
 We will save it as a .grd file, which is a standard format for raster files in R.  
 
 ```{r }
-writeRaster(x=turaStack, filename='turaStack.grd', datatype='INT2S')
+writeRaster(x=turaStack, filename='turaStack.grd', datatype='INT2S', overwrite = TRUE)
 ```
 Raster arithmetic can be performed is RasterLayers are identical in terms of extent, resolution, projection etc. 
 Calculate the NDVI based on the gewata RasterBrick object we created earlier using arithmetic. 
@@ -204,10 +204,10 @@ It can be changed using setwd()
 Save the latitude and longitude of the NDVI layer to a .kml file, because this file type is a Google earth format. 
 
 ```{r }
-KML(x=ndviLL, filename='gewataNDVI.kml')
+KML(x=ndviLL, filename='gewataNDVI.kml', overwrite= TRUE)
 ```
 Once you have saved the file, if you navigate to the file on your computer and double click, it will open in Google Earth and show you where this area appears on a map. 
-## Using cloud masks in R ##
+### Using cloud masks in R 
 A cloud mask is an extra raster layer, that contains information about presence or absence of cloud and shaowing effects from clouds. 
 cfmask is the cloud mask of Landsat surface reflectance product.
 In this example,  we will use the cfmask layer to mask remaining clouds out of a Landsat image of Tahiti, French Polynesia. 
@@ -239,6 +239,10 @@ Visualise the cloud mask layer (layer 7).
 ```{r }
 plot(tahiti, 7)
 ```
+<div class="alert alert-info">
+  <strong>Task</strong> Try plotting different Landsat bands e.g. 1, 2 and 3. 
+</div>
+
 In the legend on the right of our plot, 1 = water, 2 = cloud shadow, 3 = snow, 4 = cloud (see https://code.google.com/p/fmask/). 
 We can plot the cloud layer on top of the RGB image of Tahiti. 
 To do this, we need to assign NA values to the 'clear land pixels' so they appear transparent on the overlay plot. 
@@ -303,7 +307,7 @@ plotRGB(tahitiCloudFree, 3,4,5)
 ```
 In this plot the clouds are now gone. If you wanted to extend on this, you could use another image from another date to create a composited image to 'fill in the gaps' (the white sections). 
 
-## Transforming data from raster format to data frame format
+### Transforming data from raster format to data frame format
 
 Sometimes to perform statistical analyses it is useful to extract data from satellite images in raster format, which we worked with previously in this workshop, and transform it to data frame format. You can then run analyses on the data which appears in a standard table format.
 In this section we will work through this process of going from a raster, to a data frame in R. 
@@ -324,7 +328,7 @@ plotRGB(tahitiCloudFree, r = 3, g = 2, b = 1, axes = TRUE, stretch = "lin", main
 ```
 We want to extract data from this image to run statistical analyses on a dataset in dataframe format.
 Create a data frame from the tahitiCloudFree Raster Brick - it includes the band values from Landsat bands 1-6.
-We use the na.rm command because we want to remove the NA values. Later we will we will add NDVI to this data frame, which can only be calculated on pixels we have spectral values for, and the two objects need to have the same number of rows to merge.
+We use the na.rm command because we want to remove the NA values. Later we will add NDVI to this data frame, which can only be calculated on pixels we have spectral values for, and the two objects need to have the same number of rows to merge.
 ```{r }
 tahiti.df <-as.data.frame (tahitiCloudFree, na.rm=TRUE) 
 ```
@@ -355,5 +359,5 @@ Produce a summary of the data frame, tahitiCloudFree1, to check all the variable
 ```{r }
 summary (tahiti.df1)
 ```
-## End of workshop code ## 
+### End of workshop code 
 

@@ -1,7 +1,7 @@
 ---
-title: "Workshop 2:Classification Part 1 - Tree based approaches "
+title: "Workshop 2: Crop classification Part 1 - Tree based approaches "
 author: "Jacinta Holloway"
-date: "31 January 2018"
+date: "May 2018"
 output: html_document
 ---
 
@@ -9,16 +9,14 @@ output: html_document
 knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
                       results='hide', warning=FALSE, message=FALSE)
 ```
-Setting up your R session.
+### Setting up your R session.
 Start by making sure that your working directory is properly set.
 If not you can set it using setwd().
+
 To check your working directory use getwd.
-
-
 ```{r }
 getwd()
 ```
-
 Install required packages.   
 This workshop requires the packages ggplot2, gbm, caret, rpart and dplyr.
 You can check which packages you have installed using the installed.packages function. 
@@ -28,23 +26,21 @@ installed.packages(lib.loc = NULL, priority = NULL,
                    noCache = FALSE, fields = NULL,
                    subarch = .Platform$r_arch)
 ```
-
 Alternatively go to window 4, tab "Packages" and type in/search for the listed packages above and install by using the button.  
 A window will open in which you have to type in the name of the package and hit install. 
-If the above  packages are not listed please install them using install.packages.
-
-```{r }
+If the above  packages are not listed please install them using install.packages code below. 
 
 options(repos="https://cran.rstudio.com")
 install.packages(c("ggplot2","gbm","caret","rpart","dplyr"))
 
+Load the libraries for the required packages. 
+```{r, warning= FALSE }
 library (ggplot2)
 library(gbm)
 library(caret)
 library(dplyr)
 library(rpart)
 ```
-
 We will be working with some Landsat satellite imagery data.
 Read the Landsat data from a csv file into R. Note: you will need to change the file path to the location of the file on your computer.  
 
@@ -59,7 +55,6 @@ Check data type of the new data set, LSdata, using the class function. It should
 ```{r }
 class(LSdata)
 ```
-
 Check the structure of the LS data set, including variable names (col names), summary statistics and information about each variable. 
 
 ```{r }
@@ -68,7 +63,6 @@ dim(LSdata)
 summary(LSdata)
 str(LSdata)
 ```
-
 Satellite imagery is a type of big data, which can be inconveniently large to work with on a standard computer. 
 Let's take a random sample of this data to make it easier to run models on. 
 Take a random sample of size 50,000 from LSdata - sample without replacement.
@@ -77,14 +71,12 @@ Take a random sample of size 50,000 from LSdata - sample without replacement.
 mysample <- LSdata[sample(1:nrow(LSdata), 50000,
                           replace=FALSE),] 
 ```
-
 This creates a new file, called mysample, as "data frame". This is your random sample.
 Check the structure of the new data set, my sample, using the class function. It should be a data frame.
 
 ```{r }
 class(mysample)
 ```
-
 Check the structure of the LS data set, including variable names (col names), summary statistics and information about each variable
 
 ```{r }
@@ -93,22 +85,19 @@ dim(mysample)
 summary(mysample)
 str(mysample)
 ```
-
 Let's remove the original larger LSdata file from the environment as we are working on the subset of the data we randomly sampled for the rest of the workshop.
 
 ```{r }
 rm(LSdata)
 ```
-## Fit a Boosted Regression Tree ##
+### Fit a Boosted Regression Tree 
 
 In this example you will run a Boosted Regression Tree using the 'gbm' package. A GBM is a Generalized Boosted Regression Model.
 More information about the package is [here.] (https://cran.r-project.org/web/packages/gbm/gbm.pdf)
 Note: You can also run a gbm in the 'dismo' package, but we will use gbm in this example.
 You can find out what type of modelling can be done in gbm using the getModelInfo function.
 
-```{r }
 getModelInfo()$gbm$type
-```
 
 GBMs are a classification technique. In this example, the GBM will perform a binary classification on crop data in the Landsat imagery. 
 Create binary variables for crop.
@@ -116,7 +105,6 @@ Create binary variables for crop.
 ```{r }
 crop.bin = model.matrix( ~ crop - 1, data=mysample )
 ```
-
 Next, split the data set, my sample, into a training data set (80%) and test data set (20%).
 The training data is used to train the model, and then the model is run on the test data to check how well it is classifying the data.
 
@@ -130,7 +118,6 @@ training <- mysample [inTrain,]
 testing <- mysample [-inTrain,]
 str(inTrain)
 ```
-
 Check the number of rows (observations) in the training and test datasets. You should have more observations in the training data set.
 
 ```{r }
@@ -225,7 +212,7 @@ See [this link] (https://stats.stackexchange.com/questions/237582/interpretation
   <strong>Task</strong> Interpret the results for lines 3-6 inclusive
 </div>
 
-## Plots ##
+### Plots 
 It is useful to visualise your data, even using simple graphs. Produce a bar plot to view the relative importance of the different bands in the Landsat imagery.
 
 ```{r }
@@ -253,7 +240,6 @@ Fit a CART model using the rpart function.
 cart <- rpart(crop ~ band1+band2+band3+band4+band5+band6,
              data = training)
 ```
-
 Produce a plot of the tree. 
 
 ```{r }
@@ -261,7 +247,6 @@ plot(cart, uniform=TRUE,
      main="Classification Tree for Crops")
 text(cart, cex=.8)
 ```
-
 Predict using the CART model.
 
 ```{r }
@@ -273,4 +258,4 @@ table(cartp)
 </div>
 
 
-## End of workshop code ##
+### End of workshop code 

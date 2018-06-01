@@ -5,10 +5,10 @@ date: "23 May 2018"
 output: html_document
 ---
 ```{r global_options, message=FALSE, results= 'hide', echo= FALSE}
-knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+knitr::opts_chunk$set(fig.width=10, fig.height=6, fig.path='Figs/',
                       results='hide', warning=FALSE, message=FALSE)
 ```
-## Setting up your R session 
+### Setting up your R session 
 Start by making sure that your working directory is properly set - it should be set to the same place your code and data for R script are stored.
 If not you can set it using setwd()
 To check your working directory use getwd.
@@ -25,21 +25,22 @@ installed.packages(lib.loc = NULL, priority = NULL,
 ```
 If the dlm, forecast or tseries packages are not installed, run the following code: 
 
-```{r }
 options(repos="https://cran.rstudio.com")
 install.packages (c("dlm", "forecast", "tseries"))
+
+Load the libraries for the required packages. 
+```{r }
 library(dlm)
 library(forecast)
 library(tseries)
 ```
-
 We will be working on crop data that is freely available and extracted from the FAO website http://www.fao.org/faostat/en/#data/QC 
 
 Read the crop data from a csv file into R, calling the data yield.data. 
 Change the file path to the location of the csv file on your computer. 
 
 ```{r }
-yield.data <-read.csv("/Users/hollowj/Documents/RA/UN/R/Earth Observation Workshop/data/FAOSTAT_data_1-24-2018.csv")
+yield.data <-read.csv("data/FAOSTAT_data_1-24-2018.csv")
 ```
 View the first few rows of the data to see how it looks. Also check the structure.
 ```{r }
@@ -91,7 +92,7 @@ If we have an autoregressive series, then the correlation will gradually decreas
 
 The code below plots an ACF of the first order differences for the log of crop yield.
 ```{r, warning = FALSE }
-acf(log(yield.ts))
+acf(log(yield.ts), main = "")
 ```
 There is a downward trend, so the series may not be stationary. A common way to create a possibly stationary series, is to examine the first differences.
 A useful definition, along with some time series analyses guidance in R is available here:https://www.analyticsvidhya.com/blog/2015/12/complete-tutorial-time-series-modeling/
@@ -109,7 +110,7 @@ q : MA
 To find the parameters p, d and q we can use Auto Correlation Function (ACF) plots. 
 The code below plots an ACF of the first order differences for the log of crop yield.
 ```{r} 
-acf(diff(log(yield.ts), main = "ACF of first order differences for the log of crop yield"))
+acf(diff(log(yield.ts)), main = "")
 ```
 This pattern shows an AR(1) model may be suitable for the first differences of the log of yield. 
 See https://newonlinecourses.science.psu.edu/stat510/node/60/ for more explanation. 
@@ -193,7 +194,7 @@ x <- cbind(yield.ts, dropFirst(yield.smooth$s[,c(1,3)])) # note we drop the firs
 colnames(x) <- c("Yield", "Trend", "Seasonality")
 plot(x, main = "Yield Data: Smoothed Trend and Seasonal Components")
 ```
-## Making crop yield predictions
+### Making crop yield predictions
 
 We can also predict future values of the series based on the model.
 Let's forecast 2 years ahead of the series (annually, so that's 2 time steps) to 2018.
@@ -240,11 +241,12 @@ Now plot on a single graph.
 plot(x, plot.type = "single", type = "o", pch = c(1, 0, 15, 4, 4), 
      col = c("black", "black", "red", "blue", "blue"),
      ylab = "Crop Yield")
-legend("bottomleft", legend = c("Observed",
+legend("bottomright", legend = c("Observed",
                                 "Smoothed (deseasonalised)",
                                 "Forecasted (deseasonalised)", 
                                 "95% Forecast Interval"),
        bty = 'n', pch = c(1, 0, 15, 4, 4), lty = 1,
        col = c("black", "black", "red", "blue", "blue"))
 ```
-## End of workshop code ##
+
+### End of workshop code 

@@ -1,25 +1,29 @@
 ---
-title: "Workshop 3: Classification Part 2 - K-nn and Multinomial Logistic Regression"
+title: "Workshop 3: Crop classification Part 2 - K-nn and Multinomial Logistic Regression"
 author: "Jacinta Holloway"
-date: "31 January 2018"
+date: "16 May 2018"
 output: html_document
 ---
-
-## Setting up your R session ##
+```{r global_options, message=FALSE, results= 'hide', echo= FALSE}
+knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
+                      results='hide', warning=FALSE, message=FALSE)
+                      
+```
+### Setting up your R session 
 Start by making sure that your working directory is properly set.
 If not you can set it using setwd().
 
 To check your working directory use getwd().
 
-```{r, results='hide', message=FALSE }
+```{r }
 getwd()
 ```
 
 Install required packages. 
-This workshop requires the packages class, glmnet, caret, dplyr, ggplot2, reshape2, nnet and foreign. 
+This workshop requires the packages caret, class, dplyr, ggplot2 and nnet. 
 You can check which packages you have installed using the installed.packages function. 
 
-```{r, results='hide' }
+```{r }
 options(repos="https://cran.rstudio.com")
 installed.packages(lib.loc = NULL, priority = NULL,
                    noCache = FALSE, fields = NULL,
@@ -28,26 +32,25 @@ installed.packages(lib.loc = NULL, priority = NULL,
 
 Alternatively go to window 4, tab "Packages" and type in/search for the listed packages above and install by using the button.  
 A window will open in which you have to type in the name of the package and hit install. 
-If the above  packages are not listed please install them using install.packages. 
+If the above  packages are not listed please install them using install.packages code below. 
 
-```{r, results='hide', message=FALSE, warning=FALSE }
-install.packages(c("class", "glmnet","caret", "dplyr", "ggplot2", "nnet"))
+install.packages(c("class","caret", "dplyr", "ggplot2", "nnet"))
 
-library(glmnet)
+Load the libraries for the required packages. 
+```{r }
 library(caret)
-library(dplyr)
-library(rpart)
 library(class)
+library(dplyr)
+library(ggplot2)
+library(nnet)
 ```
-
 We will be continuing work with the same Landsat satellite imagery data. 
 Read the Landsat data from a csv file into R. 
 Change the file path to the location of the csv file on your computer. 
 
-```{r, results='hide' }
-LSdata <- read.csv ("/Users/hollowj/Documents/RA/R/QUT Workshops 2018/landsat_farms3and5.csv") 
+```{r }
+LSdata <- read.csv ("data/landsat_farms3and5.csv") 
 ```
-
 This creates a new file, called LSdata, as a "data frame" format. 
 A data frame is used to store data tables, and is a list of vectors of equal length. 
 Check data type of the new data set, LSdata, using the class function. It should be a data frame. 
@@ -55,7 +58,6 @@ Check data type of the new data set, LSdata, using the class function. It should
 ```{r, results='hide' }
 class(LSdata)
 ```
-
 Check the structure of the LS data set, including variable names (col names), summary statistics and information about each variable. 
 
 ```{r, results='hide' }
@@ -64,33 +66,29 @@ dim(LSdata)
 summary(LSdata)
 str(LSdata)
 ```
-
 Satellite imagery is a type of big data, which can be inconveniently large to work with on a standard computer. 
 Let's take a random sample of this data to make it easier to run models on. 
 Take a random sample of size 50,000 from LSdata - sample without replacement.
 
-```{r, results='hide' }
+```{r  }
 mysample <- LSdata[sample(1:nrow(LSdata), 50000,
                           replace=FALSE),] 
 ```
-
 This creates a new file, called mysample, as "data frame". This is your random sample.
 Let's remove the original larger LSdata file from the environment as we are working on the subset of the data you randomly sampled for the rest of the workshop.
 
-```{r, results='hide' }
+```{r  }
 rm(LSdata)
 ```
-
 Create binary variables for crop.
 
-```{r, results='hide' }
+```{r  }
 crop.bin = model.matrix( ~ crop - 1, data=mysample )
 ```
-
 Next, split the data set, my sample, into a training data set (80%) and test data set (20%). 
 The training data is used to train the model, and then the model is run on the test data to check how well it is classifying the data.
 
-```{r, results='hide' }
+```{r  }
 inTrain <- createDataPartition(y=mysample$crop, 
                                times = 1,
                                list = FALSE,
@@ -100,77 +98,67 @@ training <- mysample [inTrain,]
 testing <- mysample [-inTrain,]
 str(inTrain)
 ```
-
-## Fit a K-nn model using the knn function ## 
+### Fit a K-nn model using the knn function 
 A useful tutorial for this using the free dataset, iris, is available here https://www.datacamp.com/community/tutorials/machine-learning-in-r 
 The knn function uses Euclidian distance to find the k-nearest neighbours to each new, unknown observation. 
 You will need to specify which variables in the training and testing data sets you created earlier you would like to use. Since the target variable is crop, it is not included. 
 Create your training data set
 
-```{r, results='hide' }
+```{r  }
 knn.training <- training[7:12 ] #The Landsat bands data is in columns 7 to 12 in the training data set
 ```
-
 Inspect the training data set.
 
-```{r, results='hide' }
+```{r  }
 head(knn.training)
 ```
-
 Create your test data set.
 
-```{r, results='hide' }
+```{r  }
 knn.testing <- testing[7:12]
 ```
 
 Inspect your test data set.
 
-```{r, results='hide' }
+```{r  }
 head(knn.testing)
 ```
-
 You will need to add labels to your training and test data sets, which will be the crop types the k-nn model predicts.
 Compose the crop training labels.
 
-```{r, results='hide' }
+```{r  }
 knn.trainingLabels <- training[3]
 ```
-
 Inspect the result.
 
-```{r, results='hide' }
+```{r  }
 print(knn.trainingLabels)
 ```
-
 Compose crop testing labels.
 
-```{r, results='hide' }
+```{r  }
 knn.testingLabels <- testing[3]
 ```
-
 Inspect the result.
 
-```{r, results='hide' }
+```{r  }
 print(knn.testingLabels)
 ```
-
 You can see the names of the crops are printed.
 Create the k-nn model, called knn_pred, using the knn function. Note: the cl needs to be a vector.  
 
-```{r, results='hide' }
+```{r  }
 knn_pred <- knn(train = knn.training, test = knn.testing, cl = knn.trainingLabels[[1]],  k=3)
 ```
-
 View the model output.
 
-```{r, results='hide' }
+```{r  }
 knn_pred
 ```
-
 You can specify different values for k. 
 Create a variable to store the performance at each level of k, called crop_hold.
 
-```{r, results='hide' }
+```{r  }
 crop_hold<-numeric() #Holding variable
 
 for(i in 1:20){
@@ -181,10 +169,9 @@ for(i in 1:20){
                  mean(predict==knn.testingLabels$crop))
 }
 ```
-
 Plot k= 1 through 20.
 
-```{r, results='hide' }
+```{r  }
 plot(1-crop_hold,type="l",ylab="Error Rate",
      xlab="K",main="Error Rate for Crop With Varying K")
 ```
@@ -192,50 +179,37 @@ plot(1-crop_hold,type="l",ylab="Error Rate",
   <strong>Task</strong> Interpret the graph. How many neighbours do you think are effective for classifying the observations?
 </div>
  
-## Fit a multinomial logistic model ##
-This section requires the following packages: foreign, nnet, ggplot2 and reshape2. To load them, run the following:
-
-```{r, results='hide', message=FALSE}
-require(foreign)
-require(nnet)
-require(ggplot2)
-require(reshape2)
-```
+### Fit a multinomial logistic model 
 
 Fit a multinomial logistic regression model called 'clm' using the multinom function of the nnet package.
 Multinomial logistic regression is useful when you have a nominal variable with no intrinsic ordering. In this example, this is type of crop.
-
-```{r, results='hide' }
+```{r  }
 clm <- multinom(crop ~ band1+band2+band3+band4+band5+band6,
                 data = training)
 summary(clm)
 ```
-
 Let's calculate the Z score and p-value for the variables in the multinomial logistic regression model, clm.
 Calculate and view z scores.
 
-```{r, results='hide' }
+```{r  }
 z <- summary(clm)$coefficients/summary(clm)$standard.errors
 z
 ```
-
 Calculate and view the p-values.
 
-```{r, results='hide' }
+```{r  }
 p <- (1 - pnorm(abs(z), 0, 1))*2
 p
 ```
-
 Are the landsat bands significant based on the p-values? 
 
 Logistic regression estimates describe the relationship between the response variable (crop type) and covariates (Landsat bands) on a log odds scale  
 We want to use the exponential function to convert the log odds to an odds ratio for each covariate 
 Exponentiate the coefficients
 
-```{r, results='hide' }
+```{r  }
 exp(coef(clm))
 ```
-
 Let's interpret the output for Barley, which should look as follows:
 
 Crop  |(Intercept)| band1|band2|band3|band4|band5|band6|
@@ -251,7 +225,7 @@ We can see that for every 1 unit increase in band 1, the odds of the crop being 
 
 Let's use the model for prediction on the testing data set.
 
-```{r, results='hide' }
+```{r  }
 predicted <- predict(clm, data=testing, type = "prob")
 
 head(predicted)
@@ -260,7 +234,7 @@ head(predicted)
 You have created a Multimomial logistic regression model, but is it useful? Let's compare it with another model to find out. 
 Create a logistic regression model called clm2, which excludes some of the landsat bands (you can specify any you like). 
 
-```{r, results='hide' }
+```{r  }
 clm2 <- multinom(crop ~ band1+band3+band5+band6,
                 data = training)
 summary(clm2)
@@ -269,7 +243,7 @@ summary(clm2)
 Perform an anova test to assess the goodness of fit of the models clm and clm2.
 A logistic regression provides better fit if it shows an improvement over a model with fewer predictors i.e . if clm is an improvement over clm2.
 
-```{r, results='hide' }
+```{r  }
 anova(clm, clm2, test ="Chisq")
 ```
 <div class="alert alert-info">
@@ -286,25 +260,22 @@ In this example, you want to create cross validation folds that have proportions
 (the rarest crop classes we have included have > 13 observations each).
 Set the number of cross validation folds.
 
-```{r, results='hide' }
+```{r  }
 n.folds <- 10
 ```
-
 Create a cross validation function called crossval.
 
-```{r, results='hide' }
+```{r  }
 crossval <- createFolds(y = training$crop, k = n.folds, returnTrain = TRUE)
 ```
-
 Run the function crossval and view the results.
 
-```{r, results='hide' }
+```{r  }
 crossval
 ```
-
 You can check that each fold is approximately the same size by using the slice function and comparing the observations of each crop in the 1st and 10th folds.
 
-```{r, results='hide' }
+```{r  }
 training %>%
   slice(crossval[[1]]) %>%
   group_by(crop) %>%
@@ -315,26 +286,23 @@ training %>%
   group_by(crop) %>%
   summarise(count = n())
 ```
-
 Use the clm model to predict responses on the testing data.
 Create the clm model to predict values of data it has never seen before, the test data. 
 
-```{r, results='hide' }
+```{r  }
 clmpredict <- predict(clm, data = testing, type = "class")
 ```
-
 Run the clm model and produce a summary.
 
-```{r, results='hide' }
+```{r  }
 clmpredict
 
 summary(clmpredict)
 ```
-
 Discuss how you think the model performed on the test data set.
 <div class="alert alert-info">
   <strong>Task</strong> Consider the knn and multinomial logistic regression models in this workshop. Discuss some differences, advantages and disadvantages of these models.
 </div>
 
 
-## End of workshop ##
+### End of workshop code 

@@ -1,4 +1,4 @@
-# How to use satellite imagery data for statistical analyses
+# R code to use satellite imagery data for statistical analyses
 Materials for Earth observation data for official statistics workshops 2018
 
 This repository contains workshop code and html files I prepared for the Earth Observation data for official statistics workshop hosted by the United Nations and held in Bangkok, June 2018.

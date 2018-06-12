@@ -13,8 +13,8 @@ knitr::opts_chunk$set(fig.width=12, fig.height=8, fig.path='Figs/',
 ### Setting up your R session.
 Start by making sure that your working directory is properly set.
 If not you can set it using setwd().
-To check your working directory use getwd.
 
+To check your working directory use getwd.
 ```{r }
 getwd()
 ```
@@ -28,14 +28,14 @@ installed.packages(lib.loc = NULL, priority = NULL,
                    subarch = .Platform$r_arch)
 ```
 Alternatively go to window 4, tab "Packages" and type in/search for the listed packages above and install by using the button.  
-A window will open in which you have to type in the name of the package and hit install. 
+A window will open in which you have to type in the name of the package and hit install.
+
 If the above  packages are not listed please install them using install.packages.
 
-```{r }
 options(repos="https://cran.rstudio.com")
 install.packages(c("caret","raster","rgdal", "rgeos","sp","RStoolbox"))
-```
 
+Load the libraries for the required packages.
 ```{r }
 library(caret)
 library(raster)
@@ -207,8 +207,10 @@ Save the latitude and longitude of the NDVI layer to a .kml file, because this f
 KML(x=ndviLL, filename='gewataNDVI.kml', overwrite= TRUE)
 ```
 Once you have saved the file, if you navigate to the file on your computer and double click, it will open in Google Earth and show you where this area appears on a map. 
+
 ### Using cloud masks in R 
-A cloud mask is an extra raster layer, that contains information about presence or absence of cloud and shaowing effects from clouds. 
+
+A cloud mask is an extra raster layer, that contains information about presence or absence of cloud and shadowing effects from clouds. 
 cfmask is the cloud mask of Landsat surface reflectance product.
 In this example,  we will use the cfmask layer to mask remaining clouds out of a Landsat image of Tahiti, French Polynesia. 
 Download the data and unzip the file.

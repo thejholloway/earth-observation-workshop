@@ -208,7 +208,7 @@ KML(x=ndviLL, filename='gewataNDVI.kml', overwrite= TRUE)
 ```
 Once you have saved the file, if you navigate to the file on your computer and double click, it will open in Google Earth and show you where this area appears on a map. 
 ### Using cloud masks in R 
-A cloud mask is an extra raster layer, that contains information about presence or absence of cloud and shaowing effects from clouds. 
+A cloud mask is an extra raster layer, that contains information about presence or absence of cloud and shadowing effects from clouds. 
 cfmask is the cloud mask of Landsat surface reflectance product.
 In this example,  we will use the cfmask layer to mask remaining clouds out of a Landsat image of Tahiti, French Polynesia. 
 Download the data and unzip the file.

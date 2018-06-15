@@ -194,6 +194,7 @@ x <- cbind(yield.ts, dropFirst(yield.smooth$s[,c(1,3)])) # note we drop the firs
 colnames(x) <- c("Yield", "Trend", "Seasonality")
 plot(x, main = "Yield Data: Smoothed Trend and Seasonal Components")
 ```
+
 ### Making crop yield predictions
 
 We can also predict future values of the series based on the model.

@@ -182,7 +182,7 @@ yield.mod$V; yield.mod$W
 ```
 Now we can obtain smoothed estimates of the states using the fitted model, and decompose the series into a smooth trend + stochastic seasonal component (plus error).
 
-The function dlmSmooth uses the Kalman Smoother algorithm to get smoothed values of the states plus var-covar matrices.
+The function dlmSmooth uses the Kalman Smoother algorithm to get smoothed values of the states plus var-covar matrices. 
 It returns a time series of smoothed state vectors (object$s), plus a SVD representation of the var-cov matrices.
 Note that the smoothed series begins one time unit before the first data observation (t-1), so we need to remove it for graph:
 ```{r }
@@ -201,6 +201,7 @@ We can also predict future values of the series based on the model.
 Let's forecast 2 years ahead of the series (annually, so that's 2 time steps) to 2018.
 
 dlmFilter uses the Kalman Filter to compute filtered values of the states and var-covar matrices via SVD. 
+An illustrated example of how a Kalman filter works http://www.bzarg.com/p/how-a-kalman-filter-works-in-pictures/
 Note that the filtered series begins one time unit before the first data observation.
 
 ```{r }

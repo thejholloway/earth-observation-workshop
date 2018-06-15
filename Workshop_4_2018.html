@@ -236,7 +236,7 @@ plot(x, main = &quot;Yield Data: Smoothed Trend and Seasonal Components&quot;)</
 <div id="making-crop-yield-predictions" class="section level3">
 <h3>Making crop yield predictions</h3>
 <p>We can also predict future values of the series based on the model. Let’s forecast 2 years ahead of the series (annually, so that’s 2 time steps) to 2018.</p>
-<p>dlmFilter uses the Kalman Filter to compute filtered values of the states and var-covar matrices via SVD. Note that the filtered series begins one time unit before the first data observation.</p>
+<p>dlmFilter uses the Kalman Filter to compute filtered values of the states and var-covar matrices via SVD. An illustrated example of how a Kalman filter works <a href="http://www.bzarg.com/p/how-a-kalman-filter-works-in-pictures/" class="uri">http://www.bzarg.com/p/how-a-kalman-filter-works-in-pictures/</a> Note that the filtered series begins one time unit before the first data observation.</p>
 <pre class="r"><code>yield.filter &lt;- dlmFilter(yield.ts, mod = yield.mod)</code></pre>
 <p>The function dlmForecast calculates the expected value and variances of future observations and states.</p>
 <pre class="r"><code>yield.forecast &lt;- dlmForecast(yield.filter, nAhead = 2) # 2 indicates 2 time points (2 years from 2016 to 2018)</code></pre>

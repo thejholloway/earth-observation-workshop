@@ -148,7 +148,7 @@ We will save it as a .grd file, which is a standard format for raster files in R
 ```{r }
 writeRaster(x=turaStack, filename='turaStack.grd', datatype='INT2S', overwrite = TRUE)
 ```
-Raster arithmetic can be performed is RasterLayers are identical in terms of extent, resolution, projection etc. 
+Raster arithmetic can be performed if RasterLayers are identical in terms of extent, resolution, projection etc. 
 Calculate the NDVI based on the gewata RasterBrick object we created earlier using arithmetic. 
 NDVI = (NIR - Red) / (NIR + Red), with NIR being band 4 and Red being band 3 of Landsat 7 images. 
 
@@ -160,7 +160,7 @@ Plot the NDVI
 ```{r }
 plot(ndvi)
 ```
-NDVI takes values between 0 and 1, so the values in the plot are as expected. 
+NDVI takes values between -1 and 1, so the values in the plot are as expected. 
 Although doing arithmetic did produce the result we wanted, for larger objects and more data it is better to use functions to perform calculations. 
 Create a function to calculate NDVI. 
 Define the function to calculate NDVI from bands 3 and 4. 
@@ -209,7 +209,10 @@ KML(x=ndviLL, filename='gewataNDVI.kml', overwrite= TRUE)
 Once you have saved the file, if you navigate to the file on your computer and double click, it will open in Google Earth and show you where this area appears on a map. 
 
 ### Using cloud masks in R 
+<<<<<<< HEAD
 
+=======
+>>>>>>> b35d896ff03efbff14f47513e2a60dd01cd2b329
 A cloud mask is an extra raster layer, that contains information about presence or absence of cloud and shadowing effects from clouds. 
 cfmask is the cloud mask of Landsat surface reflectance product.
 In this example,  we will use the cfmask layer to mask remaining clouds out of a Landsat image of Tahiti, French Polynesia. 

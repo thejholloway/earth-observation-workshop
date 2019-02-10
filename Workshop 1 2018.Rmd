@@ -50,40 +50,40 @@ First section on Gewata and Tahiti are based on notes by Wageningen UR
 https://geoscripting-wur.github.io/IntroToRaster/
 A raster is a matrix of pixels organised into columns and rows (a grid) where each cell contains a value that represents information. 
 Satellite images and aerial photographs come in raster format. 
-Generate a RasterLayer object, which we will label 'r'. A RasterLayer is single layer raster as a variable. 
+Generate a RasterLayer object, which we will label 'img'. A RasterLayer is single layer raster as a variable. 
 
 ```{r }
-r <- raster(ncol=40, nrow=20)
-class(r) 
+img <- raster(ncol=40, nrow=20)
+class(img) 
 ```
 Simply typing the object name displays its general properties / metadata.
 
 ```{r }
-r
+img
 ```
-Now we will build on our RasterLayer object, 'r'.
+Now we will build on our RasterLayer object, 'img'.
 Let's first put some values in the cells of the raster layer.
 
 ```{r }
-r[] <- rnorm(n=ncell(r))
+img[] <- rnorm(n=ncell(img))
 ```
-A RasterStack is equivalent to  to multi-layer RasterLayer objects (like 'r'). 
+A RasterStack is equivalent to  to multi-layer RasterLayer objects (like 'img'). 
 Create a RasterStack object with 3 layers, called 's'. 
 
 ```{r }
-s <- stack(x=c(r, r*2, r))
+s <- stack(x=c(img, img*2, img))
 ```
 The exact same procedure works for creating a RasterBrick, which refers to one multi-layer file or is a multi-layer object. 
-Create a RasterBrick object with 3 layers, called 'b'. 
+Create a RasterBrick object with 3 layers, called 'brick'. 
 
 ```{r }
-b <- brick(x=c(r, r*2, r))
+brick <- brick(x=c(img, img*2, img))
 ```
 
-Let's look at the properties of the RasterBrick object, 'b'. 
+Let's look at the properties of the RasterBrick object, 'brick'. 
 
 ```{r }
-b
+brick
 ```
 Download required data.
 We will be downloading a raster image, called gewata, which is saved as a TIF (Tagged Image Format) file. 

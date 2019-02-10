@@ -333,9 +333,16 @@ plotRGB(tahitiCloudFree, r = 3, g = 2, b = 1, axes = TRUE, stretch = "lin", main
 ```
 We want to extract data from this image to run statistical analyses on a dataset in dataframe format.
 Create a data frame from the tahitiCloudFree Raster Brick - it includes the band values from Landsat bands 1-6.
-We use the na.rm command because we want to remove the NA values. Later we will add NDVI to this data frame, which can only be calculated on pixels we have spectral values for, and the two objects need to have the same number of rows to merge.
+To keep the latitude and longitude information of the pixels, we convert tahitiCloudFree to a spatial pixels dataframe.
 ```{r }
-tahiti.df <-as.data.frame (tahitiCloudFree, na.rm=TRUE) 
+
+tahitiCloudFree.spdf <- as(tahitiCloudFree, "SpatialPixelsDataFrame")
+
+```
+Create a normal data frame from tahitiCloudFree.spdf
+We use the na.rm command because we want to remove the NA values. Later we will add NDVI to this data frame, which can only be calculated on pixels we have spectral values for, and the two objects need to have the same number of rows to merge.
+```{r}
+tahiti.df <- as.data.frame(tahitiCloudFree.spdf, na.rm=TRUE)
 ```
 Check structure of tahiti.df. It is a data frame. 
 

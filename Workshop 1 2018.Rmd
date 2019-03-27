@@ -71,7 +71,7 @@ A RasterStack is equivalent to  to multi-layer RasterLayer objects (like 'img').
 Create a RasterStack object with 3 layers, called 's'. 
 
 ```{r }
-s <- stack(x=c(img, img*2, img))
+stack <- stack(x=c(img, img*2, img))
 ```
 The exact same procedure works for creating a RasterBrick, which refers to one multi-layer file or is a multi-layer object. 
 Create a RasterBrick object with 3 layers, called 'brick'. 
@@ -186,33 +186,9 @@ ndvOver <- function(x, y) {
 }
 ndvi3 <- overlay(x=gewata[[3]], y=gewata[[4]], fun=ndvOver)
 ```
-We currently don't know where this area we are plotting is on a map. To investigate this, we can project it in Google earth by using latitute and longitude. 
-Obtain the latitude and longitude of our NDVI layer.
-One single line is sufficient to project any raster to any projection.
-
-```{r }
-ndviLL <- projectRaster(ndvi, crs='+proj=longlat')
-```
-Since this function will write a file to your working directory.
-You want to make sure that it is set where you want the file to be written, so check your current working directory. 
-
-```{r }
-getwd()
-```
-It can be changed using setwd()
-
-Save the latitude and longitude of the NDVI layer to a .kml file, because this file type is a Google earth format. 
-
-```{r }
-KML(x=ndviLL, filename='gewataNDVI.kml', overwrite= TRUE)
-```
-Once you have saved the file, if you navigate to the file on your computer and double click, it will open in Google Earth and show you where this area appears on a map. 
+We can see there are multiple ways to calculate NDVI. 
 
 ### Using cloud masks in R 
-<<<<<<< HEAD
-
-=======
->>>>>>> b35d896ff03efbff14f47513e2a60dd01cd2b329
 A cloud mask is an extra raster layer, that contains information about presence or absence of cloud and shadowing effects from clouds. 
 cfmask is the cloud mask of Landsat surface reflectance product.
 In this example,  we will use the cfmask layer to mask remaining clouds out of a Landsat image of Tahiti, French Polynesia. 
@@ -234,6 +210,10 @@ Display names of each individual layer.
 ```{r }
 names(tahiti)
 ```
+If you want to change the name of a layer, you can adapt this code. 
+```{r }
+names(tahiti) <-c('Band1', 'Band2','Band3','Band4','Band5','Band6', 'cfmask')
+```
 Visualise the data by plotting layers 3, 4 and 5 which correspond to Landsat bands 3, 4, and 5. 
 
 ```{r }
@@ -242,8 +222,12 @@ plotRGB(tahiti, 3,4,5)
 Visualise the cloud mask layer (layer 7).
 
 ```{r }
-plot(tahiti, 7)
+plotRGB(tahiti, 7)
 ```
+```{r }
+plot(tahiti,7)
+```
+
 <div class="alert alert-info">
   <strong>Task</strong> Try plotting different Landsat bands e.g. 1, 2 and 3. 
 </div>
@@ -273,7 +257,7 @@ Extract cloud mask RasterLayer into an object called 'fmask'.
 ```{r }
 fmask <- tahiti[[7]]
 ```
-Remove fmask layer from the Landsat stack and call it 'tahiti 6'.
+Remove fmask layer from the Landsat stack so there are now only 6 layers and call it 'tahiti 6'.
 
 ```{r }
 tahiti6 <- dropLayer(tahiti, 7)

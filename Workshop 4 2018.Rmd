@@ -40,7 +40,7 @@ Read the crop data from a csv file into R, calling the data yield.data.
 Change the file path to the location of the csv file on your computer. 
 
 ```{r }
-yield.data <-read.csv("data/FAOSTAT_data_1-24-2018.csv")
+yield.data <-read.csv("data/FAOSTAT_data_crop_yield_Rwanda.csv")
 ```
 View the first few rows of the data to see how it looks. Also check the structure.
 ```{r }
@@ -59,7 +59,7 @@ plot(yield.data$Value, type = "o",
      ylab = "Yield value (hg/ha)",
      main = "Crop yield over time",
      labels = FALSE)
-axis(1, at=1:37, labels=yield.data$Year[1:37], cex.axis = 0.5)
+axis(1, at=1:57, labels=yield.data$Year[1:57], cex.axis = 0.5)
 ```
 
 ### Fit an Auto-Regressive Time Series Model (ARMA)
@@ -140,6 +140,7 @@ Step 1 is to build the model with the built in structures in dlm.
 Default order for dlmModPoly = 2, which represents a stochastic linear trend (mean plus slope).
 
 ```{r }
+options(scipen="999")
 yield.mod <- dlmModPoly() + dlmModSeas(4) 
 yield.mod
 ```
